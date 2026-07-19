@@ -1,0 +1,4 @@
+FairBnb, a tool built on the Stay22 API with two symmetric modes:
+
+I'm a Host: upload a video walkthrough of your room → TwelveLabs (Marengo 3.0) embeds it into a vector → you pick a location (typed address or click-to-drop-a-pin map) → Stay22 pulls ~20 real nearby hotels → their thumbnails get embedded into the same vector space → cosine similarity ranks the closest matches → average their prices → that's your room's fair price.
+I'm Looking: same pipeline, but you upload a photo of an existing Airbnb listing plus what it's charging, and it tells you if you're being overcharged relative to comparable hotels nearby — the "expose it" / shareable, unhinged-hackathon-prize angle.
