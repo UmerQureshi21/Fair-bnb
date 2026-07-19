@@ -1,13 +1,17 @@
 import json
 import os
+import sqlite3
 import tempfile
 from datetime import date, timedelta
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel
 
+import auth
+import db
 from stay22 import cheapest_price, get_config, search_accommodations
 from embed import embed_image, embed_image_file, embed_video
 from similarity import cosine_similarity
@@ -23,15 +27,158 @@ SIMILARITY_THRESHOLD = 0.45
 
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20MB
 
+REFRESH_TOKEN_TTL_DAYS = int(os.getenv("REFRESH_TOKEN_TTL_DAYS", 7))
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
+
 app = FastAPI()
 
 # The frontend (Next.js on :3000) and this API run on different origins in dev.
+# allow_credentials is required so the browser sends/accepts the HttpOnly
+# refresh-token cookie on cross-origin requests.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def on_startup():
+    db.init_db()
+
+
+def set_refresh_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        key="refresh_token",
+        value=token,
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        path="/api/auth",
+        max_age=REFRESH_TOKEN_TTL_DAYS * 86400,
+    )
+
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class SaveValuationRequest(BaseModel):
+    mode: str
+    result: dict
+
+
+def serialize_user(user: dict) -> dict:
+    return {"id": user["id"], "email": user["email"]}
+
+
+@app.post("/api/auth/signup", status_code=201)
+async def signup(body: SignupRequest, response: Response):
+    if len(body.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+
+    password_hash = auth.hash_password(body.password)
+    try:
+        user = db.create_user(body.email, password_hash)
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=409, detail="Email already registered")
+
+    access_token = auth.create_access_token(user["id"], user["email"])
+    refresh_token = auth.create_refresh_token(user["id"], user["token_version"])
+    set_refresh_cookie(response, refresh_token)
+    return {"access_token": access_token, "token_type": "bearer", "user": serialize_user(user)}
+
+
+@app.post("/api/auth/login")
+async def login(body: LoginRequest, response: Response):
+    user = db.get_user_by_email(body.email)
+    if not user or not auth.verify_password(body.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    access_token = auth.create_access_token(user["id"], user["email"])
+    refresh_token = auth.create_refresh_token(user["id"], user["token_version"])
+    set_refresh_cookie(response, refresh_token)
+    return {"access_token": access_token, "token_type": "bearer", "user": serialize_user(user)}
+
+
+@app.post("/api/auth/refresh")
+async def refresh(request: Request, response: Response):
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+    try:
+        payload = auth.decode_token(token, expected_type="refresh")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+    user = db.get_user_by_id(int(payload["sub"]))
+    if not user or user["token_version"] != payload["ver"]:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+    access_token = auth.create_access_token(user["id"], user["email"])
+    new_refresh_token = auth.create_refresh_token(user["id"], user["token_version"])
+    set_refresh_cookie(response, new_refresh_token)
+    return {"access_token": access_token, "token_type": "bearer", "user": serialize_user(user)}
+
+
+@app.post("/api/auth/logout")
+async def logout(request: Request, response: Response):
+    token = request.cookies.get("refresh_token")
+    if token:
+        try:
+            payload = auth.decode_token(token, expected_type="refresh")
+            db.bump_token_version(int(payload["sub"]))
+        except ValueError:
+            pass
+
+    response.delete_cookie(key="refresh_token", path="/api/auth")
+    return {"ok": True}
+
+
+@app.get("/api/auth/me")
+async def me(user: dict = Depends(auth.get_current_user)):
+    return serialize_user(user)
+
+
+@app.post("/api/valuations", status_code=201)
+async def save_valuation(body: SaveValuationRequest, user: dict = Depends(auth.get_current_user)):
+    result = body.result
+    saved = db.create_valuation(
+        user_id=user["id"],
+        mode=body.mode,
+        fair_price=result.get("fair_price"),
+        listed_price=result.get("listed_price"),
+        result_json=json.dumps(result),
+    )
+    return {"id": saved["id"], "created_at": saved["created_at"]}
+
+
+@app.get("/api/valuations")
+async def get_valuations(user: dict = Depends(auth.get_current_user)):
+    rows = db.list_valuations(user["id"])
+    return {
+        "valuations": [
+            {
+                "id": row["id"],
+                "mode": row["mode"],
+                "fair_price": row["fair_price"],
+                "listed_price": row["listed_price"],
+                "result": json.loads(row["result_json"]),
+                "created_at": row["created_at"],
+            }
+            for row in rows
+        ]
+    }
 
 
 @app.get("/api/config")
