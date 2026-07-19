@@ -1,0 +1,44 @@
+/*
+ * Single source of truth for every color in the app. Tweak a value here and
+ * it updates everywhere the matching Tailwind utility is used (bg-brand,
+ * text-muted, border-border, etc.) — see app/globals.css for how these are
+ * wired into Tailwind's theme.
+ */
+
+:root {
+  /* brand — Stay22 blue */
+  --color-brand: #293cff;
+  --color-brand-hover: #0013d6;
+  --color-brand-tint: #ecedfe; /* chip/badge backgrounds */
+  --color-brand-tint-fg: #293cff; /* text sitting on brand-tint */
+
+  /* base */
+  --color-page: #ffffff; /* page background */
+  --color-fg: #171717; /* primary text */
+  --color-muted: #525252; /* secondary/supporting text */
+
+  /* surfaces */
+  --color-surface: #ffffff; /* cards, panels */
+  --color-surface-alt: #fafafa; /* subtle section backgrounds */
+
+  /* borders */
+  --color-border: #e5e5e5; /* hairline dividers */
+  --color-border-strong: #d4d4d4; /* buttons, dropzones */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-brand-tint: #101437;
+    --color-brand-tint-fg: #7b86f4;
+
+    --color-page: #fafafa;
+    --color-fg: #282727;
+    --color-muted: #a3a3a3;
+
+    --color-surface: #171717;
+    --color-surface-alt: #131519;
+
+    --color-border: #27272a;
+    --color-border-strong: #3f3f46;
+  }
+}
