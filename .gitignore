@@ -9,3 +9,4 @@ __pycache__/
 tsconfig.tsbuildinfo
 next-env.d.ts
 embed_usage.json
+.claude
