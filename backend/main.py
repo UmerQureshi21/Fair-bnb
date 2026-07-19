@@ -12,9 +12,11 @@ from pydantic import BaseModel
 
 import auth
 import db
+import storage
 from stay22 import cheapest_price, get_config, search_accommodations
 from embed import embed_image, embed_image_file, embed_video
 from similarity import cosine_similarity
+from vectors import compute_vector_plot
 
 load_dotenv()
 
@@ -298,6 +300,21 @@ async def valuate(
             low_confidence = avg_similarity < SIMILARITY_THRESHOLD
             yield emit(step="compare", status="done")
 
+            try:
+                vector_plot = compute_vector_plot(user_embedding, [h["embedding"] for h in top_matches])
+            except Exception:
+                vector_plot = None
+
+            media_id = storage.new_media_id()
+            try:
+                user_media_url = storage.upload_user_media(media_id, content, content_type, suffix)
+                user_media_type = "video" if content_type.startswith("video/") else "image"
+            except Exception:
+                user_media_url = user_media_type = None
+
+            for i, h in enumerate(top_matches):
+                h["thumbnail"] = await storage.upload_hotel_thumbnail(media_id, i, h["thumbnail"])
+
             def serialize(h):
                 return {
                     "price": h["price"],
@@ -312,6 +329,12 @@ async def valuate(
                 "top_matches": [serialize(h) for h in top_matches],
                 "worst_matches": [serialize(h) for h in worst_matches],
             }
+
+            if vector_plot is not None:
+                result_data["vector_plot"] = vector_plot
+            if user_media_url is not None:
+                result_data["user_media_url"] = user_media_url
+                result_data["user_media_type"] = user_media_type
 
             # "Looking" mode only - how the listing's asking price compares to
             # what similar hotels nearby actually charge.

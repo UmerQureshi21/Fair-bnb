@@ -5,6 +5,11 @@ import type { Mode } from "./ModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type ValuateMatch = { price: number; similarity: number; thumbnail: string; url: string };
+export type VectorPlotData = {
+  user: [number, number, number];
+  top_matches: [number, number, number][];
+  fidelity?: number;
+};
 export type ValuateResult = {
   fair_price: number;
   low_confidence: boolean;
@@ -14,6 +19,9 @@ export type ValuateResult = {
   overcharge_amount?: number;
   overcharge_percent?: number;
   is_overpriced?: boolean;
+  vector_plot?: VectorPlotData;
+  user_media_url?: string;
+  user_media_type?: "image" | "video";
 };
 
 function ChevronIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -31,7 +39,15 @@ function ChevronIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-export function ResultDisplay({ mode, result }: { mode: Mode; result: ValuateResult }) {
+export function ResultDisplay({
+  mode,
+  result,
+  onSaved,
+}: {
+  mode: Mode;
+  result: ValuateResult;
+  onSaved?: () => void;
+}) {
   const [showWorst, setShowWorst] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const { status, authFetch } = useAuth();
@@ -46,6 +62,7 @@ export function ResultDisplay({ mode, result }: { mode: Mode; result: ValuateRes
       });
       if (!res.ok) throw new Error();
       setSaveState("saved");
+      onSaved?.();
     } catch {
       setSaveState("error");
     }
