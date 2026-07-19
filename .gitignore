@@ -10,3 +10,5 @@ tsconfig.tsbuildinfo
 next-env.d.ts
 embed_usage.json
 .claude
+backend/fairbnb.db
+backend/fairbnb.db-*
