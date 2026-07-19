@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Mode } from "./ModeToggle";
 import { LocationPicker } from "./LocationPicker";
 import {
@@ -12,6 +12,7 @@ import {
 import type { ValuateResult } from "./ResultDisplay";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB, matches the backend limit
 
 const copy: Record<
   Mode,
@@ -33,7 +34,7 @@ const copy: Record<
     uploadName: "roomVideo",
     cta: "Price My Room",
     stepLabels: {
-      embed_input: "Embedding video with TwelveLabs",
+      embed_input: "Embedding video",
       fetch_hotels: "Fetching nearby hotels from Stay22",
       embed_hotels: "Embedding hotel images",
       compare: "Running cosine similarity to rank matches",
@@ -47,7 +48,7 @@ const copy: Record<
     uploadName: "listingPhoto",
     cta: "Expose It",
     stepLabels: {
-      embed_input: "Embedding photo with TwelveLabs",
+      embed_input: "Embedding photo",
       fetch_hotels: "Fetching nearby hotels from Stay22",
       embed_hotels: "Embedding hotel images",
       compare: "Running cosine similarity to rank matches",
@@ -70,6 +71,15 @@ export function ExposeForm({
   const [embedProgress, setEmbedProgress] = useState<{ current: number; total: number } | null>(null);
   const c = copy[mode];
 
+  useEffect(() => {
+    if (status !== "loading") return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [status]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -85,9 +95,14 @@ export function ExposeForm({
       setErrorMessage("Choose a file first.");
       return;
     }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setStatus("error");
+      setErrorMessage("File too large — 20MB max.");
+      return;
+    }
     if (!address && !(lat && lng)) {
       setStatus("error");
-      setErrorMessage("Set a location first — type an address or drop a pin on the map.");
+      setErrorMessage("Set a location first by typing an address or dropping a pin on the map.");
       return;
     }
 
@@ -161,21 +176,6 @@ export function ExposeForm({
         className="flex w-full flex-col rounded-3xl border border-border bg-surface p-3 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.25)] sm:p-4"
         onSubmit={handleSubmit}
       >
-        {mode === "looking" && (
-          <label className="mb-3 block rounded-2xl border border-border px-4 py-3">
-            <span className="block text-[11px] font-bold uppercase tracking-wide text-muted">
-              What are they charging? ($/night)
-            </span>
-            <input
-              type="number"
-              min={0}
-              placeholder="200"
-              className="w-full bg-transparent text-sm font-medium text-fg placeholder:text-muted outline-none"
-              name="listedPrice"
-            />
-          </label>
-        )}
-
         {/* Dates and guests are hardcoded server-side for now. */}
         {/* <div className="grid grid-cols-1 divide-y divide-border rounded-2xl border border-border sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           <label className="px-4 py-3">
@@ -203,35 +203,52 @@ export function ExposeForm({
           )}
         </div> */}
 
-        <div className="flex flex-col gap-3">
-          <label
-            htmlFor={c.uploadInputId}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border-strong px-4 py-5 text-center text-sm text-muted transition hover:border-brand hover:text-brand"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="h-6 w-6 flex-shrink-0"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L7 9m5-5l5 5" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" />
-            </svg>
-            <span className="max-w-xs truncate font-semibold">{fileName ?? c.uploadLabel}</span>
-            <input
-              key={c.uploadInputId}
-              id={c.uploadInputId}
-              name={c.uploadName}
-              type="file"
-              accept={c.uploadAccept}
-              className="hidden"
-              onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
-            />
-          </label>
+        <div className="flex gap-3">
+          {mode === "looking" && (
+            <label className="flex w-40 flex-shrink-0 flex-col justify-center rounded-2xl border border-border px-4 py-3">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-muted">
+                What are they charging? ($/night)
+              </span>
+              <input
+                type="number"
+                min={0}
+                placeholder="200"
+                className="w-full bg-transparent text-sm font-medium text-fg placeholder:text-muted outline-none"
+                name="listedPrice"
+              />
+            </label>
+          )}
 
-          <LocationPicker label={c.addressLabel} onChange={setHasLocation} />
+          <div className="flex flex-1 flex-col gap-3">
+            <label
+              htmlFor={c.uploadInputId}
+              className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border-strong px-4 py-5 text-center text-sm text-muted transition hover:border-brand hover:text-brand"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-6 w-6 flex-shrink-0"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L7 9m5-5l5 5" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" />
+              </svg>
+              <span className="max-w-xs truncate font-semibold">{fileName ?? c.uploadLabel}</span>
+              <input
+                key={c.uploadInputId}
+                id={c.uploadInputId}
+                name={c.uploadName}
+                type="file"
+                accept={c.uploadAccept}
+                className="hidden"
+                onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+              />
+            </label>
+
+            <LocationPicker label={c.addressLabel} onChange={setHasLocation} />
+          </div>
         </div>
 
         {status === "loading" && (
@@ -245,7 +262,7 @@ export function ExposeForm({
         <button
           type="submit"
           disabled={!canSubmit}
-          className="mt-3 flex items-center justify-center gap-2 self-end rounded-2xl bg-brand px-8 py-3 text-sm font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-3 w-full flex items-center justify-center gap-2 self-end rounded-2xl bg-brand px-8 py-3 text-sm font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           {status === "loading" ? "Crunching the numbers…" : c.cta}
           {status !== "loading" && (
