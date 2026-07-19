@@ -12,3 +12,4 @@ embed_usage.json
 .claude
 backend/fairbnb.db
 backend/fairbnb.db-*
+demo-assets/

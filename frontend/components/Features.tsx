@@ -1,19 +1,21 @@
 import { FadeIn } from "./FadeIn";
 
+const DEMO_MEDIA_BASE = "https://fairbnb-valuation-media.s3.us-east-1.amazonaws.com/demo";
+
 const modes = [
   {
     label: "For Hosts",
     title: "Price your room with confidence",
     description:
       "Upload a video walkthrough of your room and Fairbnb compares it against real hotels nearby to suggest a fair nightly price.",
-    video: "/host-demo.mp4",
+    video: `${DEMO_MEDIA_BASE}/host-demo.mp4`,
   },
   {
     label: "For Travelers",
     title: "Find out if you're being overcharged",
     description:
       "Upload a photo of a listing and what it's charging, and Fairbnb tells you how that price stacks up against visually similar hotels nearby.",
-    video: "/looking-demo.mp4",
+    video: `${DEMO_MEDIA_BASE}/looking-demo.mp4`,
   },
 ];
 
