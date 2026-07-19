@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ValuateResult } from "./ResultDisplay";
 
@@ -56,15 +57,23 @@ export function ValuationHistory({ refreshKey }: { refreshKey: number }) {
     };
   }, [status, authFetch, refreshKey]);
 
-  if (status !== "authed" || (valuations && valuations.length === 0)) return null;
+  if (status !== "authed") return null;
 
   return (
-    <div className="mt-10 w-full">
-      <p className="text-xs font-bold uppercase tracking-wide text-muted">Saved valuations</p>
+    <div className="mt-6 w-full">
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
-      {error && <p className="mt-2 text-sm font-medium text-red-600">{error}</p>}
+      {!error && !valuations && <p className="text-sm text-muted">Loading…</p>}
 
-      {!error && !valuations && <p className="mt-2 text-sm text-muted">Loading…</p>}
+      {valuations && valuations.length === 0 && (
+        <p className="rounded-2xl border border-dashed border-border-strong px-4 py-8 text-center text-sm text-muted">
+          No saved valuations yet.{" "}
+          <Link href="/valuate" className="font-semibold text-brand hover:underline">
+            Run one on the Valuate tab
+          </Link>{" "}
+          and save it to see it here.
+        </p>
+      )}
 
       {valuations && valuations.length > 0 && (
         <div className="mt-3 flex flex-col gap-3">

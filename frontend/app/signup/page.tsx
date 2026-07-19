@@ -20,7 +20,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup(email, password);
-      router.push("/dashboard");
+      router.push("/valuate");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
