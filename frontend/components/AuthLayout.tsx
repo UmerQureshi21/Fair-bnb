@@ -11,11 +11,11 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
           className="absolute left-6 top-6 flex items-center gap-2 text-sm font-semibold text-white/60 transition hover:text-white sm:left-10 sm:top-8"
         >
           <Image
-            src="/fairbnb.png"
+            src="/logo-white.png"
             alt="FairBnb"
             width={24}
             height={24}
-            className="h-6 w-6 rounded-md object-contain"
+            className="h-6 w-6 object-contain"
           />
           Back to home
         </Link>
@@ -26,11 +26,11 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       <div className="hidden flex-col items-center justify-center gap-20 bg-page px-10 py-16 lg:flex">
         <div className="flex items-center gap-2">
           <Image
-            src="/fairbnb.png"
+            src="/logo-black.png"
             alt="FairBnb"
             width={40}
             height={40}
-            className="h-10 w-10 rounded-md object-contain"
+            className="h-10 w-10 object-contain"
             priority
           />
           <span className="text-3xl font-extrabold tracking-tight text-fg">

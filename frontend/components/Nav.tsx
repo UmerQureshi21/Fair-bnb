@@ -69,21 +69,34 @@ export function Nav() {
   const { status, user, logout } = useAuth();
 
   return (
-    <header className="border-b border-border">
+    <header className="border-b border-border bg-[#171717]">
       <div className="flex items-center gap-4 px-6 py-4 sm:px-10">
-        <Link href="/" className="flex flex-shrink-0 items-center gap-2">
-          <Image
-            src="/fairbnb.png"
-            alt="FairBnb"
-            width={40}
-            height={40}
-            className="h-10 w-10 rounded-md object-contain"
-            priority
-          />
-          <span className="text-2xl font-extrabold tracking-tight text-fg">
-            Fair<span className="text-brand">Bnb</span>
-          </span>
-        </Link>
+        {(() => {
+          const logo = (
+            <>
+              <Image
+                src="/logo-white.png"
+                alt="FairBnb"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+                priority
+              />
+              <span className="text-2xl font-extrabold tracking-tight text-white">
+                Fair<span className="text-brand">Bnb</span>
+              </span>
+            </>
+          );
+          // Home is a marketing/guest-only page - for a logged-in user the
+          // logo shouldn't navigate anywhere (no-op), it's just a brand mark.
+          return status === "authed" ? (
+            <span className="flex flex-shrink-0 items-center gap-2">{logo}</span>
+          ) : (
+            <Link href="/" className="flex flex-shrink-0 items-center gap-2">
+              {logo}
+            </Link>
+          );
+        })()}
 
         {status === "authed" && (
           <nav className="flex flex-1 items-center rounded-full bg-black px-1 py-2">
