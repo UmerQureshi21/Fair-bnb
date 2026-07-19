@@ -1,0 +1,11 @@
+.env
+.env*
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.next/
+tsconfig.tsbuildinfo
+next-env.d.ts
+embed_usage.json
