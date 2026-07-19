@@ -42,7 +42,7 @@ export default function SignupPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-transparent text-sm font-medium text-white outline-none"
+            className="input-on-dark w-full bg-transparent text-sm font-medium text-white outline-none"
           />
         </label>
 
@@ -56,7 +56,7 @@ export default function SignupPage() {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-transparent text-sm font-medium text-white outline-none"
+            className="input-on-dark w-full bg-transparent text-sm font-medium text-white outline-none"
           />
           <span className="mt-1 block text-[11px] text-white/40">At least 8 characters.</span>
         </label>

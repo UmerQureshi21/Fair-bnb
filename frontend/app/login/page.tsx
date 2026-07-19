@@ -42,7 +42,7 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-transparent text-sm font-medium text-white outline-none"
+            className="input-on-dark w-full bg-transparent text-sm font-medium text-white outline-none"
           />
         </label>
 
@@ -55,7 +55,7 @@ export default function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-transparent text-sm font-medium text-white outline-none"
+            className="input-on-dark w-full bg-transparent text-sm font-medium text-white outline-none"
           />
         </label>
 

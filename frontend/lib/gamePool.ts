@@ -59,3 +59,36 @@ export function pickRandom(pool: Card[], exclude: Set<string>): Card | null {
   if (candidates.length === 0) return null;
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
+
+type DemoHotel = { thumbnail: string; price: number; url: string };
+
+/**
+ * Loads the game's card pool from the user's own saved valuations, and - only
+ * if that's too small to play with (e.g. a brand-new account with nothing
+ * saved yet) - tops it up with real Stay22 hotels from a fixed demo location,
+ * so a new user isn't stuck staring at "save something first" before they
+ * can try a game at all.
+ */
+export async function loadGamePool(
+  authFetch: (path: string, init?: RequestInit) => Promise<Response>,
+  minCards: number,
+): Promise<Card[]> {
+  const res = await authFetch("/api/valuations");
+  if (!res.ok) throw new Error("Couldn't load your saved valuations.");
+  const data = await res.json();
+  const pool = buildPool(data.valuations);
+
+  if (pool.length >= minCards) return pool;
+
+  const demoRes = await authFetch("/api/demo-hotels");
+  if (!demoRes.ok) return pool;
+
+  const demoData = await demoRes.json();
+  const seen = new Set(pool.map((c) => c.image));
+  for (const h of (demoData.results ?? []) as DemoHotel[]) {
+    if (seen.has(h.thumbnail)) continue;
+    seen.add(h.thumbnail);
+    pool.push({ key: `demo-${h.thumbnail}`, image: h.thumbnail, price: h.price, label: "Nearby hotel" });
+  }
+  return pool;
+}

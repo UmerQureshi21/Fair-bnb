@@ -183,6 +183,42 @@ async def get_valuations(user: dict = Depends(auth.get_current_user)):
     }
 
 
+# Fixed location used to backfill the games with real Stay22 hotels for a
+# brand-new user who has no saved valuations yet - without this, they'd have
+# nothing to play with until they actually ran and saved a valuation first.
+DEMO_HOTEL_ADDRESS = "New York, NY"
+
+
+@app.get("/api/demo-hotels")
+async def demo_hotels(user: dict = Depends(auth.get_current_user)):
+    # cheapest_price() reads live-rate supplier pricing, which Stay22 only
+    # returns when checkin/checkout are provided - same fixed dates /api/valuate uses.
+    checkin = date.today() + timedelta(days=7)
+    checkout = checkin + timedelta(days=1)
+    status_code, stay22_res = await search_accommodations(
+        {
+            "address": DEMO_HOTEL_ADDRESS,
+            "checkin": checkin.isoformat(),
+            "checkout": checkout.isoformat(),
+            "pageSize": 20,
+        }
+    )
+    if status_code != 200:
+        return JSONResponse(status_code=status_code, content=stay22_res)
+
+    hotels = stay22_res.get("results", [])
+    results = [
+        {
+            "thumbnail": hotel.get("media", {}).get("thumbnail"),
+            "price": cheapest_price(hotel),
+            "url": hotel.get("url"),
+        }
+        for hotel in hotels
+    ]
+    results = [r for r in results if r["thumbnail"] and r["price"] is not None]
+    return {"results": results}
+
+
 @app.get("/api/config")
 async def config():
     return get_config()

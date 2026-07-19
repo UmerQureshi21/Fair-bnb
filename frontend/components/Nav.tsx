@@ -69,20 +69,20 @@ export function Nav() {
   const { status, user, logout } = useAuth();
 
   return (
-    <header className="border-b border-border bg-[#171717]">
+    <header className="border-b border-border bg-white">
       <div className="flex items-center gap-4 px-6 py-4 sm:px-10">
         {(() => {
           const logo = (
             <>
               <Image
-                src="/logo-white.png"
+                src="/logo-black.png"
                 alt="FairBnb"
                 width={40}
                 height={40}
                 className="h-10 w-10 object-contain"
                 priority
               />
-              <span className="text-2xl font-extrabold tracking-tight text-white">
+              <span className="text-2xl font-extrabold tracking-tight text-fg">
                 Fair<span className="text-brand">Bnb</span>
               </span>
             </>
@@ -99,7 +99,7 @@ export function Nav() {
         })()}
 
         {status === "authed" && (
-          <nav className="flex flex-1 items-center rounded-full bg-black px-1 py-2">
+          <nav className="flex flex-1 items-center rounded-full bg-fg px-1 py-2">
             {tabs.map((tab) => {
               const active = pathname === tab.href;
               return (

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { type Card, buildPool } from "@/lib/gamePool";
+import { type Card, loadGamePool } from "@/lib/gamePool";
 
 type Round = { options: Card[]; oddIndex: number };
 
@@ -123,10 +123,7 @@ export function OddOneOutGame({ onExit }: { onExit: () => void }) {
 
     async function load() {
       try {
-        const res = await authFetch("/api/valuations");
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        const cards = buildPool(data.valuations);
+        const cards = await loadGamePool(authFetch, 4);
         if (cancelled) return;
         setPool(cards);
         if (cards.length >= 4) startRound(cards);

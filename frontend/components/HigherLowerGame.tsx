@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { type Card, buildPool, pickRandom } from "@/lib/gamePool";
+import { type Card, loadGamePool, pickRandom } from "@/lib/gamePool";
 
 function CardView({
   card,
@@ -65,10 +65,7 @@ export function HigherLowerGame({ onExit }: { onExit: () => void }) {
 
     async function load() {
       try {
-        const res = await authFetch("/api/valuations");
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        const cards = buildPool(data.valuations);
+        const cards = await loadGamePool(authFetch, 2);
         if (cancelled) return;
         setPool(cards);
         if (cards.length >= 2) {

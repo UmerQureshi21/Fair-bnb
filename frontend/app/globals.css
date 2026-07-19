@@ -26,3 +26,16 @@ body {
   color: var(--color-fg);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Chrome/Safari autofill ignores a transparent background and paints its own
+   white-ish box with black text, which clashes with inputs that sit on a
+   black surface (the auth pages' left panel). Force it back to match. */
+.input-on-dark:-webkit-autofill,
+.input-on-dark:-webkit-autofill:hover,
+.input-on-dark:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  -webkit-box-shadow: 0 0 0px 1000px #000000 inset;
+  box-shadow: 0 0 0px 1000px #000000 inset;
+  caret-color: #ffffff;
+  transition: background-color 9999s ease-in-out 0s;
+}
