@@ -6,11 +6,11 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-muted sm:flex-row">
         <div className="flex items-center gap-2">
           <Image
-            src="/fairbnb.png"
+            src="/logo-black.png"
             alt="FairBnb"
             width={20}
             height={20}
-            className="h-5 w-5 rounded-md object-contain"
+            className="h-5 w-5 object-contain"
           />
           <span className="font-bold text-fg">FairBnb</span>
         </div>
