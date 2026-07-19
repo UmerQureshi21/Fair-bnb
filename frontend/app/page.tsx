@@ -23,10 +23,10 @@ export default function Home() {
         </span>
         {status === "authed" ? (
           <Link
-            href="/dashboard"
+            href="/valuate"
             className="rounded-2xl bg-brand px-8 py-3 text-sm font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-hover"
           >
-            Go to your dashboard
+            Go to Valuate
           </Link>
         ) : (
           <div className="flex gap-3">

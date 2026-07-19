@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Mode } from "./ModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -39,15 +40,7 @@ function ChevronIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-export function ResultDisplay({
-  mode,
-  result,
-  onSaved,
-}: {
-  mode: Mode;
-  result: ValuateResult;
-  onSaved?: () => void;
-}) {
+export function ResultDisplay({ mode, result }: { mode: Mode; result: ValuateResult }) {
   const [showWorst, setShowWorst] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const { status, authFetch } = useAuth();
@@ -62,7 +55,6 @@ export function ResultDisplay({
       });
       if (!res.ok) throw new Error();
       setSaveState("saved");
-      onSaved?.();
     } catch {
       setSaveState("error");
     }
@@ -81,20 +73,27 @@ export function ResultDisplay({
           </p>
         </div>
         {status === "authed" && (
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saveState === "saving" || saveState === "saved"}
-            className="flex-shrink-0 rounded-full border border-border-strong px-4 py-1.5 text-xs font-bold text-fg transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saveState === "saved"
-              ? "Saved ✓"
-              : saveState === "saving"
-                ? "Saving…"
-                : saveState === "error"
-                  ? "Retry save"
-                  : "Save this result"}
-          </button>
+          <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saveState === "saving" || saveState === "saved"}
+              className="rounded-full border border-border-strong px-4 py-1.5 text-xs font-bold text-fg transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saveState === "saved"
+                ? "Saved ✓"
+                : saveState === "saving"
+                  ? "Saving…"
+                  : saveState === "error"
+                    ? "Retry save"
+                    : "Save this result"}
+            </button>
+            {saveState === "saved" && (
+              <Link href="/dashboard" className="text-xs font-semibold text-brand hover:underline">
+                View in Dashboard →
+              </Link>
+            )}
+          </div>
         )}
       </div>
 
