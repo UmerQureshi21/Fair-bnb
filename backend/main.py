@@ -21,6 +21,8 @@ PORT = int(os.getenv("PORT", "8000"))
 # averaging prices of unrelated properties, not comparable ones.
 SIMILARITY_THRESHOLD = 0.45
 
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20MB
+
 app = FastAPI()
 
 # The frontend (Next.js on :3000) and this API run on different origins in dev.
@@ -58,9 +60,13 @@ async def valuate(
     if not (content_type.startswith("video/") or content_type.startswith("image/")):
         raise HTTPException(status_code=400, detail="Invalid file type")
 
+    content = await file.read()
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File too large - 20MB max")
+
     suffix = os.path.splitext(file.filename or "")[1]
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(await file.read())
+        tmp.write(content)
         tmp_path = tmp.name
 
     async def stream():

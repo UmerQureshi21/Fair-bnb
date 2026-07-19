@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FairBnb — That Airbnb is overpriced. We can prove it.",
+  title: "FairBnb",
   description:
     "Upload a video of any listing and FairBnb matches it against real hotels nearby using the Stay22 API to tell you what it's actually worth.",
 };
