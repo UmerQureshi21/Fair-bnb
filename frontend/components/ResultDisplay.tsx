@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Mode } from "./ModeToggle";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type ValuateMatch = { price: number; similarity: number; thumbnail: string; url: string };
 export type ValuateResult = {
@@ -32,16 +33,53 @@ function ChevronIcon({ className = "h-4 w-4" }: { className?: string }) {
 
 export function ResultDisplay({ mode, result }: { mode: Mode; result: ValuateResult }) {
   const [showWorst, setShowWorst] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const { status, authFetch } = useAuth();
+
+  async function handleSave() {
+    setSaveState("saving");
+    try {
+      const res = await authFetch("/api/valuations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, result }),
+      });
+      if (!res.ok) throw new Error();
+      setSaveState("saved");
+    } catch {
+      setSaveState("error");
+    }
+  }
 
   return (
     <div className="w-full rounded-3xl border border-border bg-surface p-6">
-      <p className="text-xs font-bold uppercase tracking-wide text-muted">
-        {mode === "host" ? "Fair price for your room" : "Fair price for this listing"}
-      </p>
-      <p className="mt-1 text-4xl font-extrabold text-brand">
-        ${result.fair_price.toFixed(0)}
-        <span className="text-lg font-semibold text-muted">/night</span>
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">
+            {mode === "host" ? "Fair price for your room" : "Fair price for this listing"}
+          </p>
+          <p className="mt-1 text-4xl font-extrabold text-brand">
+            ${result.fair_price.toFixed(0)}
+            <span className="text-lg font-semibold text-muted">/night</span>
+          </p>
+        </div>
+        {status === "authed" && (
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saveState === "saving" || saveState === "saved"}
+            className="flex-shrink-0 rounded-full border border-border-strong px-4 py-1.5 text-xs font-bold text-fg transition hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saveState === "saved"
+              ? "Saved ✓"
+              : saveState === "saving"
+                ? "Saving…"
+                : saveState === "error"
+                  ? "Retry save"
+                  : "Save this result"}
+          </button>
+        )}
+      </div>
 
       {result.listed_price !== undefined && (
         <div

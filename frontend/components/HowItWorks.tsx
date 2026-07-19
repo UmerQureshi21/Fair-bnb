@@ -49,7 +49,7 @@ function TagIcon({ className }: { className: string }) {
   );
 }
 
-type Step = {
+export type Step = {
   title: string;
   description: string;
   Icon: (props: { className: string }) => ReactElement;
@@ -58,7 +58,7 @@ type Step = {
   logo?: string;
 };
 
-const steps: Step[] = [
+export const steps: Step[] = [
   {
     title: "Upload",
     description: "Record a video of the room (or drop in a listing photo) and set the location.",
@@ -105,7 +105,7 @@ function prismLineStyle(highlight?: boolean) {
 
 // Isometric box: a rhombus top face plus two extruded side faces, drawn as
 // three SVG polygons so the strokes stay crisp at any size.
-function Prism({ highlight }: { highlight?: boolean }) {
+export function Prism({ highlight }: { highlight?: boolean }) {
   // Fixed (not theme-reactive) so the illustration reads the same in dark
   // mode instead of the roof flipping to var(--color-surface)'s near-black
   // dark-mode value and swallowing the icon.
