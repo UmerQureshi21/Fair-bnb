@@ -59,7 +59,7 @@ export function ResultDisplay({ mode, result }: { mode: Mode; result: ValuateRes
 
       {result.low_confidence && (
         <p className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-600 dark:text-amber-400">
-          Low confidence — the closest hotels we found near this location aren&apos;t
+          Low confidence. The closest hotels we found near this location aren&apos;t
           very visually similar, so this estimate may not be reliable.
         </p>
       )}
@@ -99,9 +99,6 @@ export function ResultDisplay({ mode, result }: { mode: Mode; result: ValuateRes
         <span>
           <span className="block text-xs font-bold uppercase tracking-wide text-muted">
             Least similar hotels nearby
-          </span>
-          <span className="mt-1 block text-xs text-muted">
-            For comparison — these didn&apos;t make the cut, so you can see the matching actually works.
           </span>
         </span>
         <ChevronIcon

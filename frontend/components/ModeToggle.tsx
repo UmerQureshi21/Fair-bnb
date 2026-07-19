@@ -51,7 +51,7 @@ const tabs: { mode: Mode; label: string; description: string; Icon: typeof HomeI
     mode: "looking",
     label: "I'm Looking",
     description:
-      "Upload a photo of a listing and what it's charging — we'll tell you if you're being overcharged compared to nearby hotels.",
+      "Upload a photo of a listing and what it's charging, and we'll tell you if you're being overcharged compared to identical looking hotels.",
     Icon: SearchIcon,
   },
 ];
