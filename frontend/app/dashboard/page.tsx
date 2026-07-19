@@ -1,34 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { ExposeSection } from "@/components/ExposeSection";
-import { Nav } from "@/components/Nav";
+import { RequireAuth } from "@/components/RequireAuth";
+import { ValuationHistory } from "@/components/ValuationHistory";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { status } = useAuth();
-
-  useEffect(() => {
-    if (status === "guest") router.replace("/login");
-  }, [status, router]);
-
-  if (status !== "authed") {
-    return (
-      <div className="flex min-h-full flex-1 flex-col bg-page">
-        <Nav />
-        <div className="flex flex-1 items-center justify-center px-6 py-16">
-          <p className="text-sm text-muted">Loading…</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-page">
-      <Nav />
-      <ExposeSection />
-    </div>
+    <RequireAuth>
+      <div className="mx-4 mt-8 mb-14 sm:mx-10">
+        <h1 className="text-2xl font-extrabold text-fg">Your saved valuations</h1>
+        <p className="mt-1 text-sm text-muted">
+          Every valuation you&apos;ve saved from the Valuate tab, in one place.
+        </p>
+        <ValuationHistory refreshKey={0} />
+      </div>
+    </RequireAuth>
   );
 }
